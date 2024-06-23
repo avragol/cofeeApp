@@ -6,7 +6,7 @@ require('dotenv').config();
 const app = express();
 const port = 3000;
 
-mongoose.connect(process.env.MONGO_URL, {
+mongoose.connect(process.env.ATLAS_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
