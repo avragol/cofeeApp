@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </li>`
         ).join('');
 
-        pointsElement.innerHTML = Array.from(data.points).map(([name, points]) =>
+        pointsElement.innerHTML = Object.entries(data.points).map(([name, points]) =>
             `<li class="list-group-item d-flex justify-content-between align-items-center">
                 ${name}
                 <span class="badge bg-success rounded-pill">${points}</span>
