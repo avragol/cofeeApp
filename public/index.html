@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מנהל תורות קפה</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h1 class="card-title text-center mb-4">
+                            <i class="bi bi-cup-hot-fill text-primary me-2"></i>מנהל תורות קפה
+                        </h1>
+                        <div id="current-turn" class="alert alert-info text-center mb-4"></div>
+                        <button id="next-turn" class="btn btn-primary w-100 mb-3">
+                            <i class="bi bi-arrow-right-circle me-2"></i>תור הבא
+                        </button>
+                        <div class="mb-4">
+                            <h5 class="mb-3">התנדבות להכנת קפה:</h5>
+                            <div class="d-flex">
+                                <button class="btn btn-outline-primary flex-grow-1 me-2"
+                                    data-volunteer="אברהם">אברהם</button>
+                                <button class="btn btn-outline-primary flex-grow-1 me-2"
+                                    data-volunteer="שני">שני</button>
+                                <button class="btn btn-outline-primary flex-grow-1"
+                                    data-volunteer="חביבה">חביבה</button>
+                            </div>
+                        </div>
+                        <h5 class="mb-3">ניקוד:</h5>
+                        <ul id="points" class="list-group mb-4"></ul>
+                        <h5 class="mb-3">היסטוריית תורות:</h5>
+                        <ul id="turn-history" class="list-group"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
