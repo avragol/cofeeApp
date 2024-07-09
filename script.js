@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function fetchCurrentTurn() {
-        fetch(`${process.env.SERVER_URL}/api/current-turn`)
+        fetch(`${window.env.SERVER_URL}/api/current-turn`)
             .then(response => response.json())
             .then(data => updateUI(data))
             .catch(error => console.error('Error:', error));
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     nextTurnButton.addEventListener('click', () => {
         nextTurnButton.disabled = true;
-        fetch(`${process.env.SERVER_URL}/api/next-turn`, { method: 'POST' })
+        fetch(`${window.env.SERVER_URL}/api/next-turn`, { method: 'POST' })
             .then(response => response.json())
             .then(data => {
                 updateUI(data);
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     volunteerButtons.forEach(button => {
         button.addEventListener('click', () => {
             const name = button.dataset.volunteer;
-            fetch(`${process.env.SERVER_URL}/api/volunteer`, {
+            fetch(`${window.env.SERVER_URL}/api/volunteer`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
