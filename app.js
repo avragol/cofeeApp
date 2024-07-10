@@ -6,13 +6,7 @@ require('dotenv').config();
 const app = express();
 const port = 3000;
 
-mongoose.connect(process.env.ATLAS_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,
-    retryWrites: true,
-    w: 'majority'
-}).then(() => {
+mongoose.connect(process.env.ATLAS_URL).then(() => {
     console.log('Connected to MongoDB');
 }).catch((err) => {
     console.error('Failed to connect to MongoDB', err);
@@ -60,17 +54,9 @@ app.post('/api/next-turn', async (req, res, next) => {
 
         turn.history.unshift(`${turn.currentTurn} - ${new Date().toLocaleDateString()}`);
 
-        do {
-            let nextPerson = turn.queue.shift();
-            if (nextPerson.skipTurns > 0) {
-                nextPerson.skipTurns--;
-                turn.queue.push(nextPerson);
-            } else {
-                turn.currentTurn = nextPerson.name;
-                turn.queue.push(nextPerson);
-                break;
-            }
-        } while (true);
+        let nextPerson = turn.queue.shift();
+        turn.currentTurn = nextPerson.name;
+        turn.queue.push(nextPerson);
 
         await turn.save();
         res.json(turn);
@@ -95,25 +81,17 @@ app.post('/api/volunteer', async (req, res, next) => {
         if (volunteerIndex !== -1) {
             // הסר את המתנדב מהתור הנוכחי
             const [volunteer] = turn.queue.splice(volunteerIndex, 1);
-            // הגדר את מספר התורות לדילוג
-            volunteer.skipTurns = 1; // שנה ל-1 במקום turn.points.get(name)
+            // הגדר את מספר התורות לדילוג ל-0
+            volunteer.skipTurns = 0;
             // הוסף את המתנדב בסוף התור
             turn.queue.push(volunteer);
         }
 
         // אם המתנדב הוא בעל התור הנוכחי, עבור לאדם הבא
         if (turn.currentTurn === name) {
-            do {
-                let nextPerson = turn.queue.shift();
-                if (nextPerson.skipTurns > 0) {
-                    nextPerson.skipTurns--;
-                    turn.queue.push(nextPerson);
-                } else {
-                    turn.currentTurn = nextPerson.name;
-                    turn.queue.push(nextPerson);
-                    break;
-                }
-            } while (true);
+            let nextPerson = turn.queue.shift();
+            turn.currentTurn = nextPerson.name;
+            turn.queue.push(nextPerson);
         }
 
         await turn.save();
@@ -122,7 +100,6 @@ app.post('/api/volunteer', async (req, res, next) => {
         next(error);
     }
 });
-
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);

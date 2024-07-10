@@ -2,10 +2,40 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.card {
-    border: none;
-    border-radius: 15px;
-    overflow: hidden;
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.1);
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+.popup.show {
+    display: block;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.overlay.show {
+    display: block;
 }
 
 .card-title {
@@ -36,4 +66,141 @@ body {
 
 .list-group-item:hover {
     background-color: #f8f9fa;
+}
+
+.coffee-cup {
+    width: 100px;
+    height: 100px;
+    background: #6F4E37;
+    border-radius: 0 0 50% 50%;
+    position: relative;
+    margin: 0 auto 20px;
+    overflow: visible;
+}
+
+.coffee {
+    width: 100%;
+    height: 0;
+    background: #3C2F2F;
+    position: absolute;
+    bottom: 0;
+    transition: height 2s ease-in-out;
+}
+
+.steam-container {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    overflow: hidden;
+}
+
+.steam {
+    fill: none;
+    stroke: #FFFFFF;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+@keyframes steamAnimation {
+    0% {
+        stroke-dashoffset: 0;
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 0.5;
+    }
+
+    50% {
+        stroke-dashoffset: -20;
+    }
+
+    100% {
+        stroke-dashoffset: -40;
+        opacity: 0;
+    }
+}
+
+.popup.show .coffee {
+    height: 80%;
+}
+
+.popup.show .steam {
+    animation: steamAnimation 3s ease-out infinite;
+}
+
+.btn-3d {
+    position: relative;
+    background: #6F4E37;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 10px 5px;
+    border-radius: 5px;
+    transition: all 0.2s;
+    transform-style: preserve-3d;
+}
+
+.btn-3d:after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: #5A3E2B;
+    transform: rotateX(-90deg);
+    transform-origin: top;
+}
+
+.btn-3d:hover {
+    transform: translateY(3px);
+}
+
+.btn-3d:active {
+    transform: translateY(5px);
+}
+
+.steam {
+    fill: silver;
+    transform: translateY(8px);
+    animation: steaming 2500ms ease infinite;
+}
+
+.steam1 {
+    animation-delay: 100ms;
+}
+
+.steam2 {
+    animation-delay: 250ms;
+}
+
+.steam3 {
+    animation-delay: 50ms;
+}
+
+.coffee-cup {
+    fill: ivory;
+}
+
+@keyframes steaming {
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.svg-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: sienna;
+    height: 300px;
+    box-sizing: border-box;
+}
+
+.svg-wrapper {
+    width: 300px;
+    height: 300px;
 }

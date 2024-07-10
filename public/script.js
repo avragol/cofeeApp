@@ -4,6 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const turnHistoryElement = document.getElementById('turn-history');
     const pointsElement = document.getElementById('points');
     const volunteerButtons = document.querySelectorAll('[data-volunteer]');
+    const confirmPopup = document.getElementById('confirmPopup');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmYesButton = document.getElementById('confirmYes');
+    const confirmNoButton = document.getElementById('confirmNo');
+    const overlay = document.getElementById('overlay');
 
     function updateUI(data) {
         currentTurnElement.textContent = `התור הנוכחי: ${data.currentTurn}`;
@@ -32,33 +37,94 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error:', error));
     }
 
+    function showConfirmPopup(name, isVolunteer = false) {
+        const isMale = ['אברהם', 'שני'].includes(name);
+        const genderSuffix = isMale ? '' : 'ה';
+        const verb = isMale ? 'בטוח' : 'בטוחה';
+        const pronoun = isMale ? 'אתה' : 'את';
+
+        confirmMessage.textContent = `${name}, האם ${pronoun} ${verb} ש${pronoun} רוצה לסמן ש${pronoun} מכינ${genderSuffix} קפה?`;
+        overlay.style.display = 'block';
+        confirmPopup.style.display = 'block';
+
+        setTimeout(() => {
+            overlay.classList.add('show');
+            confirmPopup.classList.add('show');
+            animateSteam();
+        }, 10);
+
+        return new Promise((resolve) => {
+            function handleYes() {
+                hideConfirmPopup();
+                resolve(true);
+            }
+
+            function handleNo() {
+                hideConfirmPopup();
+                resolve(false);
+            }
+
+            confirmYesButton.addEventListener('click', handleYes, { once: true });
+            confirmNoButton.addEventListener('click', handleNo, { once: true });
+        });
+    }
+
+    function hideConfirmPopup() {
+        overlay.classList.remove('show');
+        confirmPopup.classList.remove('show');
+
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            confirmPopup.style.display = 'none';
+        }, 300);
+    }
+
+    function animateSteam() {
+        const steamPaths = document.querySelectorAll('.steam');
+        steamPaths.forEach((path, index) => {
+            const length = path.getTotalLength();
+            path.style.strokeDasharray = length;
+            path.style.strokeDashoffset = length;
+            path.style.animation = `steamAnimation 3s ease-out infinite`;
+            path.style.animationDelay = `${index * 0.5}s`;
+        });
+    }
+
     nextTurnButton.addEventListener('click', () => {
-        nextTurnButton.disabled = true;
-        fetch(`/api/next-turn`, { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                updateUI(data);
-                nextTurnButton.disabled = false;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                nextTurnButton.disabled = false;
-            });
+        showConfirmPopup(currentTurnElement.textContent.split(': ')[1]).then((confirmed) => {
+            if (confirmed) {
+                nextTurnButton.disabled = true;
+                fetch(`/api/next-turn`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        updateUI(data);
+                        nextTurnButton.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        nextTurnButton.disabled = false;
+                    });
+            }
+        });
     });
 
     volunteerButtons.forEach(button => {
         button.addEventListener('click', () => {
             const name = button.dataset.volunteer;
-            fetch(`/api/volunteer`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name }),
-            })
-                .then(response => response.json())
-                .then(data => updateUI(data))
-                .catch(error => console.error('Error:', error));
+            showConfirmPopup(name, true).then((confirmed) => {
+                if (confirmed) {
+                    fetch(`/api/volunteer`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name }),
+                    })
+                        .then(response => response.json())
+                        .then(data => updateUI(data))
+                        .catch(error => console.error('Error:', error));
+                }
+            });
         });
     });
 
