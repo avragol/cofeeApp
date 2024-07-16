@@ -39,11 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showConfirmPopup(name, isVolunteer = false) {
         const isMale = ['אברהם', 'שני'].includes(name);
-        const genderSuffix = isMale ? '' : 'ה';
         const verb = isMale ? 'בטוח' : 'בטוחה';
         const pronoun = isMale ? 'אתה' : 'את';
 
-        confirmMessage.textContent = `${name}, האם ${pronoun} ${verb} ש${pronoun} רוצה לסמן ש${pronoun} מכינ${genderSuffix} קפה?`;
+        confirmMessage.textContent = `${name}, האם ${pronoun} ${verb} ש${pronoun} רוצה לסמן ש${pronoun} מכי${isMale ? "ן" : "נה"} קפה?`;
         overlay.style.display = 'block';
         confirmPopup.style.display = 'block';
 
@@ -55,8 +54,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return new Promise((resolve) => {
             function handleYes() {
-                hideConfirmPopup();
-                resolve(true);
+                fetch('/api/send-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name }),
+                }).then(function () {
+                    const newNote = `<p>נשלח לך מייל לאימות, אנא הקש אותו כאן</p>`
+                    const newInput = `<input type='text' id='verify-code-input' />`
+                    const newBtn = `<button id="confirmEmail" class="btn-3d">שלח</button>`
+                    confirmPopup.innerHTML += `
+                        ${newNote}
+                        ${newInput}
+                        ${newBtn}
+                    `
+                    document.getElementById('confirmEmail').addEventListener('click', function () {
+                        fetch('/api/verify-code', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ code: document.getElementById('verify-code-input').value }),
+                        }).then(function (res) {
+                            if (res.verified) {
+                                hideConfirmPopup();
+                                resolve(true);
+                            } else {
+                                alert('worng!');
+                                hideConfirmPopup();
+                                resolve(false);
+                            }
+                        })
+                    })
+
+                }).catch(err => console.log(err));
+                //hideConfirmPopup();
+                //resolve(true);
             }
 
             function handleNo() {

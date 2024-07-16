@@ -1,10 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const path = require('path');
+const { OAuth2Client } = require('google-auth-library');
 require('dotenv').config();
 
 const app = express();
 const port = 3000;
+
+const client_id = process.env.GOOGLE_CLIENT_ID
+const client_secret = process.env.GOOGLE_CLIENT_SECRET
+const client = new OAuth2Client(client_id, client_secret);
 
 mongoose.connect(process.env.ATLAS_URL).then(() => {
     console.log('Connected to MongoDB');
@@ -19,10 +23,54 @@ const Turn = mongoose.model('Turn', {
     points: { type: Map, of: Number, default: {} }
 });
 
-
 app.use(express.static('public'));
 app.use(express.json());
 
+let tempCode = null;
+const nameToEmailMap = {
+    "חביבה": "haviva@wedev.co.il",
+    "שני": "shani@wedev.co.il",
+    "אברהם": "avraham@wedev.co.il"
+};
+
+/* router.get('api/google-login', (req, res) => {
+    const redirect_uri = 'http://localhost:3000/google/google-callback';
+    const authorizeUrl = client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['email'],
+        redirect_uri: redirect_uri,
+    });
+    res.redirect(authorizeUrl);
+}); */
+
+/* router.get('/google-callback', async (req, res) => {
+    const { code } = req.query;
+
+    try {
+
+        const redirect_uri = 'http://localhost:8181/google/google-callback';
+        const { tokens } = await client.getToken({
+            code: code,
+            redirect_uri: redirect_uri,
+        });
+
+          const ticket = await client.verifyIdToken({
+             idToken: tokens.id_token,
+             audience: process.env.,
+         });
+
+        const payload = ticket.getPayload();
+        console.log("payload from google: " + payload);
+    } catch (error) {
+        if (error.response.data) {
+            const errorsValues = Object.values(error.response.data)
+            handleError(res, `Google authentication error: ${errorsValues.join(" , ")}`, 500)
+        } else {
+            handleError(res, `Google authentication error: ${error}`, 500)
+        }
+    }
+});
+ */
 app.get('/api/current-turn', async (req, res, next) => {
     try {
         let turn = await Turn.findOne();
@@ -76,18 +124,13 @@ app.post('/api/volunteer', async (req, res, next) => {
         turn.history.unshift(`${name} (התנדב) - ${new Date().toLocaleDateString()}`);
         turn.points.set(name, (turn.points.get(name) || 0) + 1);
 
-        // מצא את המיקום של המתנדב בתור
         const volunteerIndex = turn.queue.findIndex(p => p.name === name);
         if (volunteerIndex !== -1) {
-            // הסר את המתנדב מהתור הנוכחי
             const [volunteer] = turn.queue.splice(volunteerIndex, 1);
-            // הגדר את מספר התורות לדילוג ל-0
             volunteer.skipTurns = 0;
-            // הוסף את המתנדב בסוף התור
             turn.queue.push(volunteer);
         }
 
-        // אם המתנדב הוא בעל התור הנוכחי, עבור לאדם הבא
         if (turn.currentTurn === name) {
             let nextPerson = turn.queue.shift();
             turn.currentTurn = nextPerson.name;
@@ -100,6 +143,7 @@ app.post('/api/volunteer', async (req, res, next) => {
         next(error);
     }
 });
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
