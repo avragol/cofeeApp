@@ -5,16 +5,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const pointsElement = document.getElementById('points');
     const volunteerButtons = document.querySelectorAll('[data-volunteer]');
     const confirmPopup = document.getElementById('confirmPopup');
+    const ratingPopup = document.getElementById('ratingPopup');
     const confirmMessage = document.getElementById('confirmMessage');
     const confirmYesButton = document.getElementById('confirmYes');
     const confirmNoButton = document.getElementById('confirmNo');
     const overlay = document.getElementById('overlay');
 
+
     function updateUI(data) {
         currentTurnElement.textContent = `התור הנוכחי: ${data.currentTurn}`;
 
         turnHistoryElement.innerHTML = data.history.map(entry =>
-            `<li class="list-group-item d-flex justify-content-between align-items-center">
+            `<li class="list-group-item d-flex justify-content-between align-items-center coffee-entry " data-entry="${entry}" style="cursor:pointer">
                 ${entry}
                 <span class="badge bg-primary rounded-pill">
                     <i class="bi bi-clock"></i>
@@ -28,6 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="badge bg-success rounded-pill">${points}</span>
             </li>`
         ).join('');
+
+        // Add click event listeners to coffee entries
+        document.querySelectorAll('.coffee-entry').forEach(entry => {
+            entry.addEventListener('click', () => showRatingPopup(entry.dataset.entry));
+        });
     }
 
     function fetchCurrentTurn() {
@@ -54,43 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return new Promise((resolve) => {
             function handleYes() {
-                fetch('/api/send-code', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ name }),
-                }).then(function () {
-                    const newNote = `<p>נשלח לך מייל לאימות, אנא הקש אותו כאן</p>`
-                    const newInput = `<input type='text' id='verify-code-input' />`
-                    const newBtn = `<button id="confirmEmail" class="btn-3d">שלח</button>`
-                    confirmPopup.innerHTML += `
-                        ${newNote}
-                        ${newInput}
-                        ${newBtn}
-                    `
-                    document.getElementById('confirmEmail').addEventListener('click', function () {
-                        fetch('/api/verify-code', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ code: document.getElementById('verify-code-input').value }),
-                        }).then(function (res) {
-                            if (res.verified) {
-                                hideConfirmPopup();
-                                resolve(true);
-                            } else {
-                                alert('worng!');
-                                hideConfirmPopup();
-                                resolve(false);
-                            }
-                        })
-                    })
-
-                }).catch(err => console.log(err));
-                //hideConfirmPopup();
-                //resolve(true);
+                hideConfirmPopup();
+                resolve(true);
             }
 
             function handleNo() {
@@ -106,10 +78,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function hideConfirmPopup() {
         overlay.classList.remove('show');
         confirmPopup.classList.remove('show');
+        ratingPopup.classList.remove('show');
 
         setTimeout(() => {
             overlay.style.display = 'none';
             confirmPopup.style.display = 'none';
+            ratingPopup.style.display = 'none';
         }, 300);
     }
 
@@ -122,6 +96,63 @@ document.addEventListener('DOMContentLoaded', () => {
             path.style.animation = `steamAnimation 3s ease-out infinite`;
             path.style.animationDelay = `${index * 0.5}s`;
         });
+    }
+
+
+    function showRatingPopup(entry) {
+        const [name, date] = entry.split(' - ');
+        const nameText = name.replace(" (התנדב)", "");
+        const [day, month, year] = date.split('.').map(Number);
+        const entryDate = new Date(year, month - 1, day);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        let dateText = `ב-${date}`;
+        if (entryDate.toDateString() === today.toDateString()) {
+            dateText = "היום";
+        } else if (entryDate.toDateString() === yesterday.toDateString()) {
+            dateText = "אתמול";
+        }
+        const makeTranslate = name === 'חביבה' ? "הכינה" : "הכין"
+        const ratingHeading = `דרג את הקפה ש${nameText} ${makeTranslate} ${dateText}`;
+        ratingPopup.innerHTML = `
+            <h3>${ratingHeading}</h3>           
+            <div class="rating-buttons d-flex flex-wrap flex-md-nowrap container-flex">
+                <button class="btn btn-danger flex-item" data-rating="1">לא משהו</button>
+                <button class="btn btn-warning flex-item" data-rating="2">סבבה</button>
+                <button class="btn btn-success flex-item" data-rating="3">לג'נד</button>
+            </div>
+        `;
+        overlay.style.display = 'block';
+        ratingPopup.style.display = 'block';
+
+        setTimeout(() => {
+            overlay.classList.add('show');
+            ratingPopup.classList.add('show');
+        }, 10);
+
+        ratingPopup.querySelectorAll('[data-rating]').forEach(button => {
+            button.addEventListener('click', () => {
+                const rating = button.dataset.rating;
+                submitRating(name, rating);
+                hideConfirmPopup();
+            });
+        });
+    }
+
+    overlay.addEventListener('click', hideConfirmPopup)
+
+    function submitRating(name, rating) {
+        fetch('/api/rate-coffee', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, rating }),
+        })
+            .then(response => response.json())
+            .then(data => updateUI(data))
+            .catch(error => console.error('Error:', error));
     }
 
     nextTurnButton.addEventListener('click', () => {

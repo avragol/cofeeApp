@@ -2,6 +2,10 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.list-item-hover:hover {
+    background-color: #f8f9fa;
+}
+
 .popup {
     display: none;
     position: fixed;
@@ -15,6 +19,8 @@ body {
     z-index: 1000;
     opacity: 0;
     transition: all 0.3s ease-in-out;
+    width: max-content;
+    max-width: 95%;
 }
 
 .popup.show {
@@ -33,6 +39,26 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 999;
 }
+
+.popup h3 {
+    text-align: center;
+}
+
+.popup .rating-buttons {
+    gap: 10px;
+}
+
+.popup .rating-buttons button {
+    flex: 1;
+    min-width: calc(33.3333% - 10px);
+}
+
+@media (max-width: 768px) {
+    .popup .rating-buttons button {
+        min-width: 100%;
+    }
+}
+
 
 .overlay.show {
     display: block;
