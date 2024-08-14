@@ -50,7 +50,12 @@ app.post('/api/next-turn', async (req, res, next) => {
             return res.status(404).json({ error: 'Turn not found' });
         }
 
-        turn.history.unshift(`${turn.currentTurn} - ${new Date().toLocaleDateString()}`);
+        const date = new Date();
+        const yyyy = date.getFullYear();
+        const mm = date.getMonth() + 1;
+        const dd = date.getDate();
+
+        turn.history.unshift(`${turn.currentTurn} - ${dd}.${mm}.${yyyy}`);
 
         let nextPerson = turn.queue.shift();
         turn.currentTurn = nextPerson.name;
@@ -71,7 +76,12 @@ app.post('/api/volunteer', async (req, res, next) => {
             return res.status(404).json({ error: 'Turn not found' });
         }
 
-        turn.history.unshift(`${name} (התנדב) - ${new Date().toLocaleDateString()}`);
+        const date = new Date();
+        const yyyy = date.getFullYear();
+        const mm = date.getMonth() + 1;
+        const dd = date.getDate();
+
+        turn.history.unshift(`${name} (התנדב) - ${dd}.${mm}.${yyyy}`);
         turn.points.set(name, (turn.points.get(name) || 0) + 1);
 
         const volunteerIndex = turn.queue.findIndex(p => p.name === name);

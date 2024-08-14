@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ratingPopup.querySelectorAll('[data-rating]').forEach(button => {
             button.addEventListener('click', () => {
                 const rating = button.dataset.rating;
-                submitRating(name, rating);
+                submitRating(nameText, rating);
                 hideConfirmPopup();
             });
         });
